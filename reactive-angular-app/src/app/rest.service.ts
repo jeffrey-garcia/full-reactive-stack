@@ -9,6 +9,7 @@ import { Observable } from 'rxjs/Observable';
 export class RestService {
   private getCustomerUrl = 'http://localhost:8081/customer';  
   private getReactiveCustomerUrl = 'http://localhost:8081/rx/customers';
+  //private getReactiveCustomerUrl = 'https://localhost:8081/services/apexrest/rx/customers';
 
   constructor(
     private zone: NgZone,
