@@ -71,7 +71,10 @@ public class DemoController {
 
         // To create a visible streaming effect in the front-end UI, simulate I/O latency in DB
         // where each customer query has a processing time of 1500 milliseconds I
-        return Flux.fromStream(getCustomerList().stream()).delayElements(Duration.ofMillis(1500));
+        return Flux
+                .fromStream(getCustomerList().stream())
+                .delayElements(Duration.ofMillis(1500))
+                .subscribeOn(Schedulers.elastic());
 
 //        return Flux.defer(() -> {
 //            getCustomer();
