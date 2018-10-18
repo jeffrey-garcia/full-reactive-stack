@@ -3,6 +3,8 @@ Typical restful controllers receive a request and a thread is occupied until the
 
 The goal of this project is to be reactive from top to bottom. To do that the project uses Angular in the frontend and Spring Boot with Reactive Web as server. Mongodb is the database connected with the reactive MongoDB driver. That enables a reactive chain from the browser to the DB. The project uses an in memory MongoDB to be just cloned build and ready to run.
 
+<br/>
+
 ## Technology Stack
 1. SpringBoot 2.0.4
 2. Spring Webflux 5.0.8
@@ -10,6 +12,8 @@ The goal of this project is to be reactive from top to bottom. To do that the pr
 4. Java 8
 
 For the purpose of this project, we swap the embedded web server in SpringBoot from Netty to Tomcat, so we have fine grained control to calibrate the max-connection and max-thread, in order to easily demonstrate the efficiency gain using the flux architecture from end-to-end.
+
+<br/>
 
 ## Reactive systems and Spring WebFlux
 To get clearer on what reactive systems are, it's helpful to understand the fundamental problem they're designed to solve.
