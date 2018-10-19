@@ -4,7 +4,6 @@ import { Observable } from 'rxjs/Observable';
 import { tap } from 'rxjs/operators';
 
 import { Customer } from './model/Customer';
-import { start } from 'repl';
 
 @Component({
   selector: 'app-root',
