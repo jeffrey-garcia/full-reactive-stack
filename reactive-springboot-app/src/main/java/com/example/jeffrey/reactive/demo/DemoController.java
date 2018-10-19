@@ -84,7 +84,7 @@ public class DemoController {
 
     protected List<Customer> getCustomerList() {
         List<Customer> customers = new ArrayList<>();
-        for (int i=0; i<3; i++) {
+        for (int i=0; i<5; i++) {
             customers.add(getCustomer());
         }
         return customers;
