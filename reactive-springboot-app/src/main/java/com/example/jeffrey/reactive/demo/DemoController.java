@@ -3,10 +3,12 @@ package com.example.jeffrey.reactive.demo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -44,6 +46,11 @@ public class DemoController {
         return new Customer(null, name, null);
     }
 
+    @RequestMapping(value="/customers", method=GET)
+    public List<Customer> getCustomers() {
+        return getCustomerList();
+    }
+
     @RequestMapping(value="/rx/customer", method=GET)
     public Mono<Customer> getCustomerStream(@RequestParam(value="name", required=false, defaultValue="World") String name) {
 
@@ -73,7 +80,7 @@ public class DemoController {
         // where each customer query has a processing time of 1500 milliseconds I
         return Flux
                 .fromStream(getCustomerList().stream())
-                .delayElements(Duration.ofMillis(1500))
+                .delayElements(Duration.ofMillis(100))
                 .subscribeOn(Schedulers.elastic());
 
 //        return Flux.defer(() -> {
@@ -82,9 +89,20 @@ public class DemoController {
 //        }).subscribeOn(Schedulers.parallel());
     }
 
+    @RequestMapping(value="/client/rx/customers", method=GET)
+    public Flux<Customer> getCustomerWebClient() {
+        WebClient client = WebClient.create("http://localhost:8081");
+
+        return client.get()
+                .uri("/rx/customers")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToFlux(Customer.class);
+    }
+
     protected List<Customer> getCustomerList() {
         List<Customer> customers = new ArrayList<>();
-        for (int i=0; i<5; i++) {
+        for (int i=0; i<1000000; i++) {
             customers.add(getCustomer());
         }
         return customers;
@@ -104,4 +122,43 @@ public class DemoController {
         }
         return new Customer(UUID.randomUUID().toString(), null, null);
     }
+
+    protected SampleModel getSampleModel() {
+        SampleModel model = new SampleModel();
+        model.setId(UUID.randomUUID().toString());
+        model.setFirstName(null);
+        model.setLastName(null);
+        return model;
+    }
+
+    protected List<SampleModel> getSampleModelList() {
+        List<SampleModel> models = new ArrayList<>();
+        for (int i=0; i<5; i++) {
+            models.add(getSampleModel());
+        }
+        return models;
+    }
+
+    @RequestMapping(value="/rx/sampleModel", method=GET)
+    public Flux<SampleModel> getSampleModelStream() {
+
+        // To create a visible streaming effect in the front-end UI, simulate I/O latency in DB
+        // where each customer query has a processing time of 1500 milliseconds I
+        return Flux
+                .fromStream(getSampleModelList().stream())
+                .delayElements(Duration.ofMillis(100))
+                .subscribeOn(Schedulers.elastic());
+    }
+
+    @RequestMapping(value="/client/rx/sampleModel", method=GET)
+    public Flux<SampleModel> getSampleModelWebClient() {
+        WebClient client = WebClient.create("http://localhost:8081");
+
+        return client.get()
+                .uri("/rx/sampleModel")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToFlux(SampleModel.class);
+    }
+
 }

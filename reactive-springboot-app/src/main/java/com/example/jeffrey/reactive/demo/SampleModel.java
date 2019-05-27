@@ -1,16 +1,20 @@
 package com.example.jeffrey.reactive.demo;
 
-public class Customer {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class SampleModel {
 
     private String id;
+
+    @JsonProperty("firstName")
     private String firstName;
+
+    @JsonProperty("lastName")
     private String lastName;
 
-    public Customer() {
-        // must provide an empty constructor to avoid Jackson Databind error in WebClient
-    }
+    public SampleModel() { }
 
-    public Customer(String id, String firstName, String lastName) {
+    public SampleModel(String id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -35,5 +39,6 @@ public class Customer {
     public String getId() { return id; }
 
     public void setId(String id) { this.id = id; }
+
 
 }
