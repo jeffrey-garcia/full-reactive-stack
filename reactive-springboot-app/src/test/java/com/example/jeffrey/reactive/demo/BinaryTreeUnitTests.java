@@ -38,9 +38,35 @@ public class BinaryTreeUnitTests {
         tree.root.left.right = new Node(p5);
 
         // Preorder (Root, Left, Right) : 1 2 4 5 3
-//        tree.printPreOrder(tree.root);
+        tree.printPreOrder(tree.root);
 
         // Postorder (Left, Right, Root) : 4 5 2 3 1
+//        tree.printPostOrder(tree.root);
+
+        Node targetNode = tree.getSubTree(tree.root, p5);
+        Assert.assertEquals(p5, targetNode.key);
+    }
+
+    @Test
+    public void testPrintPostOrder() {
+        Random r = new Random();
+
+        Person p1 = new Person(1, r.nextInt(10));
+        Person p2 = new Person(2, r.nextInt(10));
+        Person p3 = new Person(6, r.nextInt(10));
+        Person p4 = new Person(8, r.nextInt(10));
+        Person p5 = new Person(9, r.nextInt(10));
+        Person p6 = new Person(10, r.nextInt(10));
+
+        BinaryTree tree = new BinaryTree();
+        tree.root = new Node(p6);
+        tree.root.left = new Node(p2);
+        tree.root.right = new Node(p4);
+        tree.root.left.left = new Node(p1);
+        tree.root.right.left = new Node(p3);
+        tree.root.right.right = new Node(p5);
+
+        // Postorder (Left, Right, Root) : 1,2,6,9,8,10
         tree.printPostOrder(tree.root);
 
         Node targetNode = tree.getSubTree(tree.root, p5);
