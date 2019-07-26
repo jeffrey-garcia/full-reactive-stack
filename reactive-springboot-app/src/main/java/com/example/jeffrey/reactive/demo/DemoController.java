@@ -1,8 +1,5 @@
 package com.example.jeffrey.reactive.demo;
 
-import io.netty.channel.ChannelOption;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +8,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,14 +16,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.ipc.netty.tcp.TcpClient;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -39,7 +34,7 @@ public class DemoController {
     private RestTemplate restTemplate;
 
     @RequestMapping(value="/customer", method=GET)
-    public Customer getCustomer(@RequestParam(value="name", required=false, defaultValue="World") String name) {
+    public ResponseEntity<Customer> getCustomer(@RequestParam(value="name", required=false, defaultValue="World") String name) {
 
         LOG.info("greeting endpoint: " + name);
         LOG.info("thread name: " + Thread.currentThread().getName());
@@ -47,21 +42,15 @@ public class DemoController {
 //        String result = restTemplate.getForObject(URI.create("http://localhost:8080/web/services/greeting2?name=" + name), String.class);
 //        LOG.info("greeting endpoint: " + name + " " + result);
 //        return result;
-
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return new Customer(null, name, null);
+        return new ResponseEntity(getCustomer(), HttpStatus.OK);
     }
 
     @RequestMapping(value="/customers", method=GET)
     public ResponseEntity<List<Customer>> getCustomers(@RequestParam(value="count", required=false, defaultValue="5") int count) {
-        ResponseEntity result = new ResponseEntity(getCustomerList(count), HttpStatus.OK);
+        List<Customer> customers = getCustomerList(count);
+
+        ResponseEntity result = new ResponseEntity(getCustomerList(10000000), HttpStatus.OK);
         return result;
-//        return getCustomerList(5);
     }
 
     @RequestMapping(value="/client/customers", method=GET)
@@ -96,33 +85,33 @@ public class DemoController {
 //        return result.delayElement(Duration.ofSeconds(10));
     }
 
-    @RequestMapping(value="/rx/customers", method=GET)
+    // text/event-stream supports angular SSE
+    // application/stream+json supports browser and curl
+    @RequestMapping(value="/rx/customers", method=GET, produces = {"text/event-stream","application/stream+json"})
     public Flux<Customer> getCustomersStream(@RequestParam(value="count", required=false, defaultValue="5") int count) {
 
         LOG.info("/rx/customers");
         LOG.info("thread name: " + Thread.currentThread().getName());
 
-        // To create a visible streaming effect in the front-end UI, simulate I/O latency in DB
+        // To create a visible streaming effect in the Angular UI, simulate I/O latency in DB
         // where each customer query has a processing time of 1500 milliseconds
 //        return Flux
 //                .fromStream(getCustomerList(count).stream())
-//                .delayElements(Duration.ofMillis(100))
-//                .subscribeOn(Schedulers.elastic());
+//                .delayElements(Duration.ofMillis(1500))
+//                .subscribeOn(Schedulers.parallel());
 
         return Flux.defer(() -> Flux.fromIterable(getCustomerList(count))).subscribeOn(Schedulers.parallel());
     }
 
-    @RequestMapping(value="/client/rx/customers", method=GET)
-    public Flux<Customer> getCustomersByWebClient() {
+    @RequestMapping(value="/client/rx/customers", method=GET, produces = {"application/stream+json"})
+    public Flux<Customer> getCustomersByWebClient(@RequestParam(value="count", required=false, defaultValue="5") int count) {
         WebClient client = WebClient.create("http://localhost:8081");
 
-        Flux<Customer> result = client.get()
-                .uri("/rx/customers?count=1000000")
-                .accept(MediaType.APPLICATION_JSON)
+        return client.get()
+                .uri("/rx/customers?count=" + count)
+                .accept(MediaType.APPLICATION_STREAM_JSON)
                 .retrieve()
                 .bodyToFlux(Customer.class);
-
-        return result;
     }
 
     protected List<Customer> getCustomerList(int count) {

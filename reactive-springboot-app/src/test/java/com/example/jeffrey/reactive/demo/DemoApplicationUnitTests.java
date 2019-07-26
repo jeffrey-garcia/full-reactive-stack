@@ -4,6 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -15,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DemoApplicationUnitTests {
+    private static final Logger LOG = LoggerFactory.getLogger(DemoApplicationUnitTests.class);
 
     @Test
     public void testMono() throws Exception {
@@ -151,7 +154,7 @@ public class DemoApplicationUnitTests {
             /* get all the latest data and emit them one by one to downstream */
             input.forEach(element -> {
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(1500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -164,7 +167,10 @@ public class DemoApplicationUnitTests {
 
         flux.log().doOnComplete(() -> {
             Assert.assertTrue(output.containsAll(input));
-        }).subscribe(output::add);
+        }).subscribe(integer -> {
+            LOG.info("$$ {}", integer);
+            output.add(integer);
+        });
 
         flux.connect();
     }
